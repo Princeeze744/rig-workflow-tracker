@@ -39,6 +39,7 @@ st.markdown("""
         --border-color: #e2e8f0;
         --card-bg: #ffffff;
         --sidebar-bg: #1e3a8a;
+        --sidebar-text: #ffffff;
     }
 
     [data-theme="dark"] {
@@ -49,6 +50,7 @@ st.markdown("""
         --border-color: #334155;
         --card-bg: #1e293b;
         --sidebar-bg: #0f172a;
+        --sidebar-text: #e2e8f0;
     }
 
     .main {
@@ -118,6 +120,16 @@ st.markdown("""
         box-shadow: 0 4px 8px rgba(30, 64, 175, 0.3);
     }
 
+    /* Sidebar styling */
+    .sidebar .sidebar-content {
+        background: var(--sidebar-bg);
+        color: var(--sidebar-text);
+    }
+    
+    .sidebar-text {
+        color: var(--sidebar-text) !important;
+    }
+
     /* Mobile responsiveness */
     @media (max-width: 768px) {
         .main-header {
@@ -165,14 +177,11 @@ def setup_theme():
     
     # Add theme toggle to sidebar
     with st.sidebar:
-        theme = st.selectbox("Theme", ["Light", "Dark", "Auto"], index=0)
+        theme = st.selectbox("Theme", ["Light", "Dark"], index=0)
         if theme == "Dark":
             st.session_state.theme = 'dark'
-        elif theme == "Light":
-            st.session_state.theme = 'light'
         else:
-            # Auto detection (simplified)
-            st.session_state.theme = 'dark'  # Default to dark for demo
+            st.session_state.theme = 'light'
 
     # Apply theme
     if st.session_state.theme == 'dark':
@@ -346,17 +355,17 @@ for col in date_columns:
 with st.sidebar:
     st.markdown("""
     <div style='text-align: center; margin-bottom: 2rem;'>
-        <h1 style='color: white; font-size: 1.5rem;'>⛴️ OFFSHORE CONTROL</h1>
-        <p style='color: #bfdbfe; font-size: 0.9rem;'>Real-time Rig Management System</p>
+        <h1 style='color: var(--sidebar-text); font-size: 1.5rem;'>⛴️ OFFSHORE CONTROL</h1>
+        <p style='color: var(--sidebar-text); font-size: 0.9rem;'>Real-time Rig Management System</p>
     </div>
     """, unsafe_allow_html=True)
     
     # Real-time status
     st.markdown(f"""
     <div style='background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 0.5rem; text-align: center; margin-bottom: 1.5rem;'>
-        <p style='color: white; margin: 0; font-size: 0.9rem;'>System Status</p>
+        <p style='color: var(--sidebar-text); margin: 0; font-size: 0.9rem;'>System Status</p>
         <p style='color: #4ade80; margin: 0; font-weight: bold;'>● OPERATIONAL</p>
-        <p style='color: #bfdbfe; margin: 0; font-size: 0.8rem;'>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+        <p style='color: var(--sidebar-text); margin: 0; font-size: 0.8rem;'>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -427,7 +436,7 @@ with st.sidebar:
     # User info
     st.markdown("---")
     st.markdown(f"""
-    <div style='color: #bfdbfe; font-size: 0.8rem;'>
+    <div style='color: var(--sidebar-text); font-size: 0.8rem;'>
         <p>Logged in as: <strong>admin</strong></p>
         <p>Session start: {st.session_state.get('login_time', datetime.now()).strftime('%H:%M:%S')}</p>
         <p>Version: {config.get('version', '2.0')}</p>
@@ -605,12 +614,7 @@ detailed_view['Response_Provided'] = detailed_view['Response_Provided'].map({Tru
 st.dataframe(
     detailed_view,
     use_container_width=True,
-    height=400,
-    column_config={
-        "Action_Doable": st.column_config.TextColumn("Doable"),
-        "Action_Complete": st.column_config.TextColumn("Complete"),
-        "Response_Provided": st.column_config.TextColumn("Response")
-    }
+    height=400
 )
 
 # --- FOOTER WITH ENHANCED INFO ---
