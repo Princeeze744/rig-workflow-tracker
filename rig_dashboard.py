@@ -8,6 +8,7 @@ import random
 import time
 import base64
 from io import BytesIO
+import numpy as np
 
 # --- PAGE CONFIG FOR MOBILE FIRST ---
 st.set_page_config(
@@ -47,10 +48,24 @@ st.markdown("""
             width: 100% !important;
             transform: none !important;
         }
-        /* Make buttons more touch-friendly */
-        .stButton button {
-            padding: 0.8rem 1rem;
-            font-size: 14px;
+        /* Improved touch targets */
+        .stButton > button {
+            min-height: 44px;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        /* Better table responsiveness */
+        .dataframe {
+            display: block;
+            overflow-x: auto;
+        }
+        /* Improved form elements */
+        .stTextInput input, .stSelectbox select {
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        /* Enhanced metric cards */
+        .metric-card {
+            margin: 0.5rem;
+            padding: 1rem;
         }
     }
 
@@ -153,6 +168,15 @@ st.markdown("""
     .js-plotly-plot {
         width: 100% !important;
     }
+    
+    /* Fix for login screen text visibility */
+    .login-container h2 {
+        color: #1e3a8a !important;
+    }
+    
+    .login-container p {
+        color: #64748b !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -161,7 +185,7 @@ def login_screen():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("""
-        <div style='text-align: center; padding: 2rem; background: white; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>
+        <div style='text-align: center; padding: 2rem; background: white; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);' class='login-container'>
             <h1 style='font-size: 2.5rem; margin-bottom: 1rem;'>⛴️</h1>
             <h2 style='color: #1e3a8a; margin-bottom: 1rem;'>Offshore Operations Portal</h2>
             <p style='color: #64748b; margin-bottom: 2rem;'>Enterprise Rig Management System</p>
@@ -192,7 +216,7 @@ def load_data():
         df.to_csv(data_file, index=False)
     return df
 
-def generate_sample_data(num_rigs=8, num_requests_per_rig=2):
+def generate_sample_data(num_rigs=8, num_requests_per_rig=3):
     rig_names = ["Deepwater Horizon", "Ocean Explorer", "Sea Guardian", "Marine Pioneer", 
                 "Offshore Venture", "Blue Wave", "Pacific Driller", "Atlantic Explorer"]
     requestors = ["Client A", "Client B", "Supplier X", "Internal Team", "Regulatory Body"]
@@ -342,7 +366,7 @@ for _, row in filtered_df.iterrows():
 gantt_df = pd.DataFrame(gantt_data)
 if not gantt_df.empty:
     fig = px.timeline(gantt_df, x_start="Start", x_end="Finish", y="Task", color="Resource", height=400)
-    fig.update_yaxes(autorange="reversed")  # Fixed the typo here (autorrange -> autorange)
+    fig.update_yaxes(autorange="reversed")
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
     st.plotly_chart(fig, use_container_width=True)
 else:
@@ -350,11 +374,49 @@ else:
 
 # --- DATA TABLE ---
 st.markdown("### 📋 Request Details")
-detailed_view = filtered_df[["Rig", "Request_ID", "Action_Requested", "Requestor", "Start_Date", "End_Date", "Action_Complete"]].copy()
+detailed_view = filtered_df[["Rig", "Request_ID", "Action_Requested", "Requestor", "Start_Date", "End_Date", "Action_Complete", "Priority"]].copy()
 detailed_view['Start_Date'] = detailed_view['Start_Date'].dt.strftime('%Y-%m-%d')
 detailed_view['End_Date'] = detailed_view['End_Date'].dt.strftime('%Y-%m-%d')
 
 st.dataframe(detailed_view, use_container_width=True, height=300)
+
+# --- ADDITIONAL ENHANCEMENTS ---
+
+# Real-time data refresh
+if st.button("🔄 Refresh Data"):
+    st.cache_data.clear()
+    st.experimental_rerun()
+
+# Advanced analytics section
+st.markdown("### 📊 Advanced Analytics")
+analytics_cols = st.columns(2)
+
+with analytics_cols[0]:
+    completion_rate = (df['Action_Complete'].sum() / len(df)) * 100
+    st.markdown(f'''
+    <div class="metric-card">
+        <h3>Overall Completion Rate</h3>
+        <h2>{completion_rate:.1f}%</h2>
+    </div>
+    ''', unsafe_allow_html=True)
+
+with analytics_cols[1]:
+    high_priority = len(df[df['Priority'] == 'High'])
+    st.markdown(f'''
+    <div class="metric-card">
+        <h3>High Priority Tasks</h3>
+        <h2>{high_priority}</h2>
+    </div>
+    ''', unsafe_allow_html=True)
+
+# Priority breakdown chart
+st.plotly_chart(px.pie(df, names='Priority', title='Task Priority Distribution'), use_container_width=True)
+
+# Rig performance comparison
+rig_performance = df.groupby('Rig')['Action_Complete'].mean().reset_index()
+rig_performance.columns = ['Rig', 'Completion Rate']
+st.plotly_chart(px.bar(rig_performance, x='Rig', y='Completion Rate', 
+                      title='Rig Performance Comparison'), use_container_width=True)
 
 # --- EXPORT FUNCTIONALITY ---
 st.markdown("### 📤 Export Data")
