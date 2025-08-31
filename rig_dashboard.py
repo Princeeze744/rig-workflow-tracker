@@ -24,15 +24,15 @@ st.markdown("""
     /* Base responsive design */
     @media (max-width: 768px) {
         .main-header {
-            font-size: 1.8rem !important;
+            font-size: 2rem !important;
             text-align: center;
         }
         .metric-card {
-            padding: 0.8rem !important;
+            padding: 1rem !important;
             margin-bottom: 0.5rem;
         }
         .stMetric {
-            padding: 0.3rem;
+            padding: 0.5rem;
         }
         /* Stack columns on mobile */
         .element-container {
@@ -40,17 +40,12 @@ st.markdown("""
         }
         /* Better mobile table view */
         .dataframe {
-            font-size: 11px;
+            font-size: 12px;
         }
         /* Adjust sidebar for mobile */
         .sidebar .sidebar-content {
             width: 100% !important;
             transform: none !important;
-        }
-        /* Make buttons more touch-friendly */
-        .stButton button {
-            padding: 0.8rem 1rem;
-            font-size: 14px;
         }
     }
 
@@ -342,11 +337,9 @@ for _, row in filtered_df.iterrows():
 gantt_df = pd.DataFrame(gantt_data)
 if not gantt_df.empty:
     fig = px.timeline(gantt_df, x_start="Start", x_end="Finish", y="Task", color="Resource", height=400)
-    fig.update_yaxes(autorange="reversed")  # Fixed the typo here (autorrange -> autorange)
+    fig.update_yaxes(autorange="reversed")  # Fixed the typo here
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
     st.plotly_chart(fig, use_container_width=True)
-else:
-    st.info("No data available for the selected filters")
 
 # --- DATA TABLE ---
 st.markdown("### 📋 Request Details")
@@ -355,14 +348,6 @@ detailed_view['Start_Date'] = detailed_view['Start_Date'].dt.strftime('%Y-%m-%d'
 detailed_view['End_Date'] = detailed_view['End_Date'].dt.strftime('%Y-%m-%d')
 
 st.dataframe(detailed_view, use_container_width=True, height=300)
-
-# --- EXPORT FUNCTIONALITY ---
-st.markdown("### 📤 Export Data")
-if st.button("Export Filtered Data to CSV"):
-    csv = filtered_df.to_csv(index=False)
-    b64 = base64.b64encode(csv.encode()).decode()
-    href = f'<a href="data:file/csv;base64,{b64}" download="rig_data_export.csv">Download CSV File</a>'
-    st.markdown(href, unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown("---")
