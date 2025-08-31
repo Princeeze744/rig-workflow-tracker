@@ -38,8 +38,8 @@ st.markdown("""
         --bg-secondary: #f8fafc;
         --border-color: #e2e8f0;
         --card-bg: #ffffff;
-        --sidebar-bg: #1e3a8a;
-        --sidebar-text: #ffffff;
+        --sidebar-bg: #f8fafc;
+        --sidebar-text: #0f172a;
     }
 
     [data-theme="dark"] {
@@ -50,7 +50,7 @@ st.markdown("""
         --border-color: #334155;
         --card-bg: #1e293b;
         --sidebar-bg: #0f172a;
-        --sidebar-text: #e2e8f0;
+        --sidebar-text: #f1f5f9;
     }
 
     .main {
@@ -362,7 +362,7 @@ with st.sidebar:
     
     # Real-time status
     st.markdown(f"""
-    <div style='background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 0.5rem; text-align: center; margin-bottom: 1.5rem;'>
+    <div style='background: rgba(0,0,0,0.1); padding: 1rem; border-radius: 0.5rem; text-align: center; margin-bottom: 1.5rem;'>
         <p style='color: var(--sidebar-text); margin: 0; font-size: 0.9rem;'>System Status</p>
         <p style='color: #4ade80; margin: 0; font-weight: bold;'>● OPERATIONAL</p>
         <p style='color: var(--sidebar-text); margin: 0; font-size: 0.8rem;'>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
@@ -619,18 +619,19 @@ st.dataframe(
 
 # --- FOOTER WITH ENHANCED INFO ---
 st.markdown("---")
-st.markdown("""
+last_update = config.get('last_update', datetime.now().isoformat())
+st.markdown(f"""
 <div style='text-align: center; color: var(--text-secondary); padding: 2rem 0;'>
     <p><strong>Offshore Rig Workflow Tracker v2.0</strong> | Professional Enterprise Edition</p>
     <p style='font-size: 0.9rem;'>
         Built with Streamlit • Optimized for all devices • Real-time monitoring
     </p>
     <p style='font-size: 0.8rem; color: var(--text-secondary);'>
-        Last updated: {config.get('last_update', datetime.now().isoformat())} | 
+        Last updated: {last_update} | 
         <a href='https://github.com/Princeeze744/rig-workflow-tracker' target='_blank' style='color: var(--secondary);'>GitHub Repository</a>
     </p>
 </div>
-""".format(config=config), unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # --- HELP & DOCUMENTATION ---
 with st.expander("ℹ️ How to Use This Dashboard"):
