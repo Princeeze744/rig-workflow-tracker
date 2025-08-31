@@ -14,7 +14,7 @@ st.set_page_config(
     page_title="Offshore Rig Workflow Tracker",
     page_icon="⛴️",
     layout="wide",
-    initial_sidebar_state="collapsed",  # Collapsed sidebar for mobile
+    initial_sidebar_state="collapsed",
     menu_items=None
 )
 
@@ -114,11 +114,6 @@ st.markdown("""
         margin: 0.5rem 0;
     }
 
-    /* Mobile-friendly sidebar */
-    .sidebar .sidebar-content {
-        background: linear-gradient(180deg, var(--primary) 0%, var(--secondary) 100%);
-    }
-
     /* Progress bar styling */
     .stProgress > div > div > div > div {
         background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
@@ -182,7 +177,7 @@ def login_screen():
                 else:
                     st.error("Invalid credentials")
 
-# --- DATA MANAGEMENT (UNCHANGED) ---
+# --- DATA MANAGEMENT ---
 def load_data():
     data_file = Path("rig_data.csv")
     if data_file.exists():
@@ -239,6 +234,14 @@ date_columns = ['Rig_Start', 'Rig_End', 'Start_Date', 'End_Date']
 for col in date_columns:
     df[col] = pd.to_datetime(df[col])
 
+# Initialize filters with default values if they don't exist
+if 'status_filter' not in st.session_state:
+    st.session_state.status_filter = df['Rig_Status'].unique().tolist()
+if 'rig_filter' not in st.session_state:
+    st.session_state.rig_filter = []
+if 'menu_open' not in st.session_state:
+    st.session_state.menu_open = False
+
 # --- MOBILE-FRIENDLY LAYOUT ---
 st.markdown('<h1 class="main-header">⛴️ Offshore Rig Workflow Tracker</h1>', unsafe_allow_html=True)
 
@@ -246,10 +249,10 @@ st.markdown('<h1 class="main-header">⛴️ Offshore Rig Workflow Tracker</h1>',
 col1, col2, col3 = st.columns([1, 2, 1])
 with col1:
     if st.button("☰ Menu"):
-        st.session_state.menu_open = not st.session_state.get('menu_open', False)
+        st.session_state.menu_open = not st.session_state.menu_open
 
 # Sidebar for filters (collapsible on mobile)
-if st.session_state.get('menu_open', False) or st.session_state.get('screen_width', 0) > 768:
+if st.session_state.menu_open:
     with st.sidebar:
         st.markdown("### 📊 Filters")
         date_range = st.date_input("Date Range", value=(
@@ -257,18 +260,27 @@ if st.session_state.get('menu_open', False) or st.session_state.get('screen_widt
             pd.Timestamp.now() + pd.Timedelta(days=30)
         ))
         
-        status_filter = st.multiselect("Rig Status", options=df['Rig_Status'].unique(), default=df['Rig_Status'].unique())
-        rig_filter = st.multiselect("Select Rigs", options=sorted(df['Rig'].unique()))
+        # Update to use session state
+        st.session_state.status_filter = st.multiselect(
+            "Rig Status", 
+            options=df['Rig_Status'].unique(), 
+            default=st.session_state.status_filter
+        )
+        st.session_state.rig_filter = st.multiselect(
+            "Select Rigs", 
+            options=sorted(df['Rig'].unique()),
+            default=st.session_state.rig_filter
+        )
         
         if st.button("Close Menu"):
             st.session_state.menu_open = False
 
 # Apply filters
 filtered_df = df.copy()
-if status_filter:
-    filtered_df = filtered_df[filtered_df['Rig_Status'].isin(status_filter)]
-if rig_filter:
-    filtered_df = filtered_df[filtered_df['Rig'].isin(rig_filter)]
+if st.session_state.status_filter:
+    filtered_df = filtered_df[filtered_df['Rig_Status'].isin(st.session_state.status_filter)]
+if st.session_state.rig_filter:
+    filtered_df = filtered_df[filtered_df['Rig'].isin(st.session_state.rig_filter)]
 
 # --- RESPONSIVE METRICS ROW ---
 st.markdown("### 📈 Performance Overview")
@@ -325,7 +337,7 @@ for _, row in filtered_df.iterrows():
 gantt_df = pd.DataFrame(gantt_data)
 if not gantt_df.empty:
     fig = px.timeline(gantt_df, x_start="Start", x_end="Finish", y="Task", color="Resource", height=400)
-    fig.update_yaxes(autorange="reversed")
+    fig.update_yaxes(autorrange="reversed")
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
     st.plotly_chart(fig, use_container_width=True)
 
